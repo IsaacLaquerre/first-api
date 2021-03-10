@@ -1,5 +1,26 @@
 const express = require("express");
 const session = require('express-session');
+const mysql = require('mysql')
+
+var connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: '1S44c196**',
+  database: 'my_db',
+  flags: "-FOUND_ROWS"
+})
+
+connection.connect(function(err) {
+    if (err) {
+      console.error('Error connecting to database: ' + err.stack);
+      return;
+    }
+
+    addToDB("tasks", "test", "hello");
+    removeFromDB("tasks", "test", "hello");
+   
+    console.log('Connected to database as id ' + connection.threadId);
+});
 
 var app = express();
 var router = express.Router();
@@ -9,21 +30,20 @@ const SECRET = createToken();
 
 app.use(session({ secret: "test", saveUninitialized: true, resave: true }));
 app.use(express.json());
+app.use(express.static("public"));
 
 app.listen(
     PORT,
     () => console.log("App live and listening on port " + PORT)
     );
 
-app.get("/dbtest", (req, res) => {
+app.get("/", (req, res) => {
     sess = req.session;
-    if (!sess.email) {
+    /*if (!sess.email) {
         res.redirect("/login");
-    }else {
-        res.status(200).send({
-            status: "ok",
-        });
-    }
+    }else {*/
+        res.sendFile("index.html", { root: "public" });
+    //}
 });
 
 app.post("/dbtest/:id", (req, res) => {
@@ -31,10 +51,7 @@ app.post("/dbtest/:id", (req, res) => {
     if (!sess.email) {
         res.redirect("/login");
     }else {
-        res.status(200).send({
-            status: "ok",
-            response: "Your token is: " + sess.token
-        });
+        res.redirect("/");
     }
 });
 
@@ -64,4 +81,14 @@ function createToken(length) {
     var chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
     return result;
+}
+
+function addToDB(table, row, value) {
+    connection.query("INSERT INTO " + table + "(" + row + ") VALUES ('" + value + "')");
+    console.log("Added value \"" + values[i] + "\" into column \"" + rows[i] + "\" in the \"" + table + "\" table");
+}
+
+function removeFromDB(table, row, value) {
+    connection.query("DELETE FROM " + table + " WHERE " + row + " = '" + value + "' LIMIT 1");
+    console.log("Removed value \"" + value + "\" from column \"" + row + "\" in the \"" + table + "\" table");
 }

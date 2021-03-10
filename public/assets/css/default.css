@@ -1,0 +1,223 @@
+@media screen and (max-width: 945px) {
+    .hor-list .container:not(#runeCheck) { 
+        float: left;
+        padding: 1px;
+    }
+}
+
+@media screen and (min-width: 945px) {
+    .hor-list .container{
+        margin: auto;
+    }
+}
+
+html {
+    background-color: rgb(36,36,36);
+    font-family: "Segoe UI";
+    position: relative;
+}
+a {
+    text-decoration: none;
+    color: white;
+}
+h2 {
+    color: white;
+    font-weight: normal;
+}
+h3 {
+    color: white;
+    font-weight: normal;
+    font-size: 12pt;
+}
+
+#discord {
+    background-color: rgb(138,156,254);
+    border-radius: 5px;
+    float: right;
+    padding: 10px;
+    justify-content: center;
+    align-items: center;
+    margin: 8px;
+    color: white;
+}
+#discord:hover {
+    background-color: rgb(116, 129, 197);
+}
+#discord span {
+    align-items: center;
+    text-align: center;
+    font-weight: bold;
+}
+#discord svg {
+    width: 20pt;
+    margin-right: 5px;
+}
+#runeCheck .hor-list {
+    width: 60%;
+    height: 50px;
+}
+
+.center {
+    text-align: center;
+    margin: auto;
+    padding: 10px;
+}
+.header {
+    background-color: rgb(29,29,29);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    z-index: 100;
+}
+.header .navbutton:not(.active):hover {
+    color: rgb(211, 211, 211)
+}
+.header .navbutton.active:hover {
+    color: rgb(187, 132, 238)
+}
+.navlist {
+    align-content: center;
+    justify-content: space-between;
+    list-style: none;
+    display: flex;
+    float: left;
+    position: absolute;
+}
+.navitem {
+    padding-left: 0px;
+    padding-right: 15px;
+    margin: 0 5px 0 5px;
+}
+.navitem .active {
+    color: rgb(151,106,193);
+}
+.navbutton {
+    font-size: 15pt;
+    color: white;
+}
+.body {
+    margin-top: 15vh;
+    left: 0;
+    right: 0;
+    width: 100%;
+    position: relative
+}
+.body ul ::-webkit-scrollbar {
+    width: 8px;
+}
+.body ul ::-webkit-scrollbar-thumb {
+    background-color: #696969;
+    width: 2px;
+    border-right: 6px rgba(1, 1, 1, 0) solid;
+    background-clip: padding-box;
+}
+.body ul ::-webkit-scrollbar-track {
+    margin: 20px 0 30px 0;
+    width: 5px;
+}
+.container {
+    display: block;
+    background-color: rgb(29,29,29);
+    border-radius: 15px;
+    padding: 15px 10px 15px 10px;
+    height: 365px;
+    width: 300px;
+    overflow-y: auto;
+}
+.container li {
+    margin-bottom: 15px;
+}
+.hor-list {
+    align-content: center;
+    justify-content: space-between;
+    list-style: none;
+    display: flex;
+    width: 50vw;
+}
+.runeCheckButton {
+    transition: 0.5s ease-out;
+    background-color: rgb(25,25,25);
+    border: 1px solid rgb(20, 20, 20);
+    border-radius: 5px;
+    padding: 5px;
+    margin-left: 5px;
+    margin-right: 5px;
+    color: white;
+    cursor: pointer;
+}
+.runeCheckButton:hover {
+    color: rgb(74, 82, 124);
+    filter: brightness(150%);
+    border: 1px solid rgb(20, 20, 20);
+}
+.runeCheckButton.clicked {
+    color: rgb(74, 82, 124);
+    filter: brightness(150%);
+}
+.progressbar {
+    border-radius: 10px;
+    padding: 10px;
+    height: 35px;
+    max-height: 35px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0px;
+    overflow: hidden;
+    color: white;
+    cursor: pointer;
+}
+.progressbar .title {
+    margin-left: 0;
+    text-align: left;
+    max-width: 250px;
+    max-height: 50px;
+    overflow: hidden;
+}
+.progressbar .players {
+    margin-right: 0;
+    text-align: right;
+}
+.seperator {
+    margin: 0 15px 15px 15px;
+    height: 1px;
+    background-color: white;
+}
+.oryx {
+    background-color: rgb(111,104,104);
+}
+.realmclearing {
+    background-color: rgb(241,141,31);
+}
+.void {
+    background-color: rgb(167,120,255);
+}
+.cult {
+    background-color: rgb(255,85,89);
+}
+
+.spacer {
+    width: 100%;
+    position: relative;
+    height: 100px;
+}
+
+.footer {
+    position: relative;
+    top: 100%;
+    bottom: 100%;
+    width: 100%;
+    height: 25vh;
+    text-align: center;
+    background-color: rgb(29,29,29);
+}
+.footer-body {
+    display: inline-block;
+    padding: 10px;
+    padding-top: 25px;
+    margin: auto;
+    text-align: center;
+    color: white;
+}
