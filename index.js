@@ -1,6 +1,6 @@
 const express = require("express");
 const session = require('express-session');
-const mysql = require('mysql')
+const mysql = require('mysql');
 
 var connection = mysql.createConnection({
   host: 'localhost',
@@ -15,9 +15,6 @@ connection.connect(function(err) {
       console.error('Error connecting to database: ' + err.stack);
       return;
     }
-
-    addToDB("tasks", "test", "hello");
-    removeFromDB("tasks", "test", "hello");
    
     console.log('Connected to database as id ' + connection.threadId);
 });
@@ -46,13 +43,29 @@ app.get("/", (req, res) => {
     //}
 });
 
-app.post("/dbtest/:id", (req, res) => {
+app.get("/runes", (req, res) => {
     sess = req.session;
-    if (!sess.email) {
-        res.redirect("/login");
-    }else {
-        res.redirect("/");
-    }
+
+    var result = {};
+
+    selectFromDB(function(success, resp) {
+        if (success) {
+            result = {
+                status: "ok",
+                response: {
+                    data: resp
+                }
+            };
+        }else {
+            console.log(resp)
+            result = {
+                status: "error",
+                error: resp
+            };
+        }
+
+        res.send(result);
+    }, "runes");
 });
 
 var sess;
@@ -60,7 +73,7 @@ var sess;
 router.get("/",(req,res) => {
     sess = req.session;
     if(sess.email) {
-        return res.redirect("/dbtest/" + sess.token);
+        return res.redirect("/" + sess.token);
     }else {
         res.redirect("/login");
     }
@@ -71,7 +84,15 @@ router.post("/login", (req, res) => {
     sess = req.session;
     sess.email = req.body.email;
     sess.token = createToken(32);
-    res.redirect(307, "/dbtest/" + sess.token)
+    res.redirect(307, "/" + sess.token)
+});
+
+router.get("/:token", (req,res) => {
+    sess = req.session;
+    const { token } = req.params;
+    if (token === sess.token) {
+        res.send({test: "test"});
+    }else res.status(400);
 });
 
 app.use("/", router);
@@ -83,12 +104,47 @@ function createToken(length) {
     return result;
 }
 
-function addToDB(table, row, value) {
-    connection.query("INSERT INTO " + table + "(" + row + ") VALUES ('" + value + "')");
-    console.log("Added value \"" + values[i] + "\" into column \"" + rows[i] + "\" in the \"" + table + "\" table");
+function selectFromDB(callback, table, row, query) {
+    if (!row) row = "*";
+    else if (Array.isArray(row)) row = row.join(", ");
+    if (row && query) query = " WHERE name = '" + query + "'";
+    else query = "";
+    try {
+        connection.query("SELECT " + row + " FROM " + table + query, function(err, resp, fields) {
+            if (err || resp[0] === undefined) {
+                callback(false, err);
+                return;
+            }
+            callback(true, resp);
+        });
+    }catch (err) {
+        callback(false, err);
+        return;
+    }
+    
 }
 
-function removeFromDB(table, row, value) {
-    connection.query("DELETE FROM " + table + " WHERE " + row + " = '" + value + "' LIMIT 1");
+function insertToDB(table, row, value) {
+    connection.query("INSERT INTO " + table + "(" + row + ") VALUES ('" + value + "');");
+    console.log("Added value \"" + value + "\" into column \"" + row + "\" in the \"" + table + "\" table");
+    connection.end();
+}
+
+function deleteFromDB(table, row, value) {
+    connection.query("DELETE FROM " + table + " WHERE " + row + " = '" + value + "' LIMIT 1;");
     console.log("Removed value \"" + value + "\" from column \"" + row + "\" in the \"" + table + "\" table");
+    connection.end();
+}
+
+function addColumnInDB(table, rowName, varType) {
+    if (!varType) varType = "VARCHAR(255)";
+    connection.query("ALTER TABLE " + table + " ADD COLUMN (" + rowName + " " + varType + ");");
+    console.log("Created column \"" + rowName + "\" in table \"" + table + "\"");
+    connection.end();
+}
+
+function dropColumnInDB(table, rowName) {
+    connection.query("ALTER TABLE " + table + " DROP COLUMN " + rowName + ";")
+    console.log("Deleted column \"" + rowName + "\" in table \"" + table + "\"");
+    connection.end();
 }
