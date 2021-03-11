@@ -56,25 +56,25 @@
             <h3 class="center">Click any of the following if you have at least one of its kind and are willing to pop it.</h3>
             <ul class="hor-list center">
                 <li>
-                    <div class="runeCheckButton" onclick="runeCheck(this)">
+                    <div id="inc" class="runeCheckButton" onclick="runeCheck(this)">
                         <img src="assets/images/inc.png" alt="Wine Cellar Incantation" title="Wine Cellar Incantation" width="64">
                         <span id="incAmount">0</span>
                     </div>
                 </li>
                 <li>
-                    <div class="runeCheckButton" onclick="runeCheck(this)">
+                    <div id="shield" class="runeCheckButton" onclick="runeCheck(this)">
                         <img src="assets/images/shield.png" alt="Shield Rune" title=Shield Rune width="64">
                         <span id="shieldAmount">0</span>
                     </div>
                 </li>
                 <li>
-                    <div class="runeCheckButton" onclick="runeCheck(this)">
+                    <div id="sword" class="runeCheckButton" onclick="runeCheck(this)">
                         <img src="assets/images/sword.png" alt="Sword Rune" title="Sword Rune" width="64">
                         <span id="swordAmount">0</span>
                     </div>
                 </li>
                 <li>
-                    <div class="runeCheckButton" onclick="runeCheck(this)">
+                    <div id="helm" class="runeCheckButton" onclick="runeCheck(this)">
                         <img src="assets/images/helm.png" alt="Helmet Rune" title="Helmet Rune" width="64">
                         <span id="helmAmount">0</span>
                     </div>
@@ -171,6 +171,7 @@
     function onLoad() {
         updateProgressBars();
         setRunes();
+
         setInterval(function() {
             for (i in document.getElementsByClassName("progressbar")) {
                 if (document.getElementsByClassName("progressbar")[i] === undefined || document.getElementsByClassName("progressbar")[i].children === undefined) return;

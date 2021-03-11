@@ -1,11 +1,13 @@
+const e = require("express");
 const express = require("express");
 const session = require('express-session');
 const mysql = require('mysql');
+const { callbackify } = require("util");
 
 var connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '1S44c196**',
+  password: 'admin',
   database: 'my_db',
   flags: "-FOUND_ROWS"
 })
@@ -34,6 +36,8 @@ app.listen(
     () => console.log("App live and listening on port " + PORT)
     );
 
+var sess;
+
 app.get("/", (req, res) => {
     sess = req.session;
     /*if (!sess.email) {
@@ -41,6 +45,58 @@ app.get("/", (req, res) => {
     }else {*/
         res.sendFile("index.html", { root: "public" });
     //}
+});
+
+app.get("/sessions/:sessionID", (req, res) => {
+    sess = req.session;
+
+    const { sessionID} = req.params;
+    const { exists } = req.query;
+
+    var result = {};
+
+    if (exists || exists === "") {
+        existsInTable("sessions", "id", sessionID, function(exists, err) {
+            if (exists) {
+                result = {
+                    status: "ok",
+                    response: {
+                        exists: true
+                    }
+                };
+            }else if (err) {
+                result = {
+                    status: "error",
+                    error: err
+                };
+            }else {
+                result = {
+                    status: "ok",
+                    response: {
+                        exists: false
+                    }
+                }
+            }
+            res.send(result);
+        });
+    }else {
+        selectFromDB(function(success, resp) {
+            if (success) {
+                result = {
+                    status: "ok",
+                    response: {
+                        data: resp
+                    }
+                };
+            }else {
+                result = {
+                    status: "error",
+                    error: resp
+                };
+            }
+            res.send(result);
+        }, "sessions", "id", sessionID);
+    }
 });
 
 app.get("/runes", (req, res) => {
@@ -57,7 +113,6 @@ app.get("/runes", (req, res) => {
                 }
             };
         }else {
-            console.log(resp)
             result = {
                 status: "error",
                 error: resp
@@ -65,12 +120,96 @@ app.get("/runes", (req, res) => {
         }
 
         res.send(result);
+        
     }, "runes");
 });
 
-var sess;
+app.get("/runs", (req, res) => {
+    sess = req.session;
 
-router.get("/",(req,res) => {
+    var result = {};
+
+    selectFromDB(function(success, resp) {
+        if (success) {
+            result = {
+                status: "ok",
+                response: {
+                    data: resp
+                }
+            };
+        }else {
+            result = {
+                status: "error",
+                error: resp
+            };
+        }
+
+        res.send(result);
+        
+    }, "runs");
+
+});
+
+app.get("/runes/:rune", (req, res) => {
+    sess = req.session;
+
+    const { rune } = req.params;
+
+    if (!rune) rune = "";
+
+    var result = {};
+
+    selectFromDB(function(success, resp) {
+        if (success) {
+            result = {
+                status: "ok",
+                response: {
+                    data: resp
+                }
+            };
+        }else {
+            result = {
+                status: "error",
+                error: resp
+            };
+        }
+
+        res.send(result);
+        
+    }, "runes", "name", rune);
+
+});
+
+router.get("/", (req, res) => {
+    sess = req.session;
+    if(sess.email) {
+        return res.redirect("/" + sess.token);
+    }else {
+        res.redirect("/login");
+    }
+});
+
+app.post("/runes/:rune", (req, res) => {
+    sess = req.session;
+
+    const { rune } = req.params;
+    const { amount } = req.body;
+
+    if (!rune) rune = "";
+    if (!amount) {
+        res.status(400).send({
+            status: "error",
+            message: "Bad request: couldn't find token 'amount' in request body"
+        });
+        return;
+    }
+
+    updateDBRow("runes", "amount", amount, ["name", rune], function() {
+        
+    });
+});
+
+router.get("/", (req, res) => {
     sess = req.session;
     if(sess.email) {
         return res.redirect("/" + sess.token);
@@ -87,7 +226,7 @@ router.post("/login", (req, res) => {
     res.redirect(307, "/" + sess.token)
 });
 
-router.get("/:token", (req,res) => {
+router.get("/:token", (req, res) => {
     sess = req.session;
     const { token } = req.params;
     if (token === sess.token) {
@@ -104,15 +243,24 @@ function createToken(length) {
     return result;
 }
 
+function existsInTable(table, row, query, callback) {
+    connection.query("SELECT EXISTS(SELECT * FROM " + table + " WHERE " + row + "='" + query + "')", function(err, resp, field) {
+        if (err) {
+            callback(false, err);
+            return;
+        }
+        if (resp[0][Object.keys(resp[0])[0]] == 0) callback(false);
+        else callback(true);
+    });
+}
+
 function selectFromDB(callback, table, row, query) {
-    if (!row) row = "*";
-    else if (Array.isArray(row)) row = row.join(", ");
-    if (row && query) query = " WHERE name = '" + query + "'";
+    if (row && query) query = " WHERE " + row + "='" + query + "'";
     else query = "";
     try {
-        connection.query("SELECT " + row + " FROM " + table + query, function(err, resp, fields) {
+        connection.query("SELECT * FROM " + table + query, function(err, resp, fields) {
             if (err || resp[0] === undefined) {
-                callback(false, err);
+                callback(false, "This value doesn't exist");
                 return;
             }
             callback(true, resp);
@@ -121,30 +269,35 @@ function selectFromDB(callback, table, row, query) {
         callback(false, err);
         return;
     }
-    
 }
 
-function insertToDB(table, row, value) {
+function updateDBRow(table, row, value, anchor, callback) {
+    connection.query("UPDATE " + table + " SET " + row + "=" + value + " WHERE " + anchor[0] + "='" + anchor[1] + "'");
+    console.log("Updated value of \"" + row + "\" to \"" + value + "\" for \"" + anchor[1] + "\" in " + table);
+    callback();
+}
+
+function insertToDB(table, row, value, callback) {
     connection.query("INSERT INTO " + table + "(" + row + ") VALUES ('" + value + "');");
     console.log("Added value \"" + value + "\" into column \"" + row + "\" in the \"" + table + "\" table");
-    connection.end();
+    callback();
 }
 
-function deleteFromDB(table, row, value) {
+function deleteFromDB(table, row, value, callback) {
     connection.query("DELETE FROM " + table + " WHERE " + row + " = '" + value + "' LIMIT 1;");
     console.log("Removed value \"" + value + "\" from column \"" + row + "\" in the \"" + table + "\" table");
-    connection.end();
+    callback();
 }
 
-function addColumnInDB(table, rowName, varType) {
+function addColumnInDB(table, rowName, varType, callback) {
     if (!varType) varType = "VARCHAR(255)";
     connection.query("ALTER TABLE " + table + " ADD COLUMN (" + rowName + " " + varType + ");");
     console.log("Created column \"" + rowName + "\" in table \"" + table + "\"");
-    connection.end();
+    callback();
 }
 
-function dropColumnInDB(table, rowName) {
+function dropColumnInDB(table, rowName, callback) {
     connection.query("ALTER TABLE " + table + " DROP COLUMN " + rowName + ";")
     console.log("Deleted column \"" + rowName + "\" in table \"" + table + "\"");
-    connection.end();
+    callback();
 }

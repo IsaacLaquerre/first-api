@@ -1,38 +1,77 @@
+const apiEndpoint = "http://localhost:8080/"
+
+function isLoggedIn() {
+    var isLoggedIn = true;
+    if (window.localStorage.getItem("sessionID") === null) return false;
+    fetch(apiEndpoint + "sessions/" + window.localStorage.getItem("sessionID") + "?exists").then((body) => {
+        body.json().then((res) => {
+            res = res.response;
+            if (res.exists) isLoggedIn = true;
+        });
+    });
+    return isLoggedIn;
+}
+
 function runeCheck(el) {
+    if (!isLoggedIn()) return alert("You must log-in first");
     if (el.classList.contains("clicked")) {
         el.classList.remove("clicked")
-        if (window.localStorage.getItem(el.children[1].id) == null) {
-            window.localStorage.setItem(el.children[1].id, 0)
-            el.children[1].innerHTML = 0;
-        }else {
-            var amount = parseInt(window.localStorage.getItem(el.children[1].id));
-            console.log(el.children[1].id + ": " + amount)
-            amount--;
-            el.children[1].innerHTML = amount;
-            window.localStorage.setItem(el.children[1].id, amount);
-        }
+            fetch(apiEndpoint + "runes/" + el.id).then((body) => {
+                body.json().then((res) => {
+                    res = res.response.data;
+
+                    var amount = parseInt(res[0].amount);
+                    amount--;
+                    el.children[1].innerHTML = amount;
+
+                    var body = {"amount": amount};
+                    
+                    fetch(apiEndpoint + "runes/" + el.id,
+                    {
+                        method: "POST",
+                        body: JSON.stringify(body),
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    });
+                });
+            });
     }else {
         el.classList.add("clicked")
-        if (window.localStorage.getItem(el.children[1].id) == null) {
-            window.localStorage.setItem(el.children[1].id, 1)
-            el.children[1].innerHTML = 1;
-        }else {
-            var amount = parseInt(window.localStorage.getItem(el.children[1].id));
-            amount++;
-            el.children[1].innerHTML = amount;
-            window.localStorage.setItem(el.children[1].id, amount);
-        }
+        fetch(apiEndpoint + "runes/" + el.id).then((body) => {
+            body.json().then((res) => {
+                res = res.response.data;
+
+                var amount = parseInt(res[0].amount);
+                amount++;
+                el.children[1].innerHTML = amount;
+
+                var body = {"amount": amount};
+
+                fetch(apiEndpoint + "runes/" + el.id,
+                {
+                    method: "POST",
+                    body: JSON.stringify(body),
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+            });
+        });
     }
 }
 
 function setRunes() {
-    for (i in document.getElementsByClassName("runeCheckButton")) {
-        if (document.getElementsByClassName("runeCheckButton")[i] === undefined || document.getElementsByClassName("runeCheckButton")[i].children === undefined) return;
-        if (window.localStorage.getItem(document.getElementsByClassName("runeCheckButton")[i].children[1].id) === null) {
-            window.localStorage.setItem(document.getElementsByClassName("runeCheckButton")[i].children[1].id, 0)
-        }
-        document.getElementsByClassName("runeCheckButton")[i].children[1].innerHTML = window.localStorage.getItem(document.getElementsByClassName("runeCheckButton")[i].children[1].id)
-    }
+
+    fetch(apiEndpoint + "runes").then((body) => {
+        body.json().then((res) => {
+            res = res.response.data;
+
+            for (i in res) {
+                document.getElementById(res[i].name).children[1].innerHTML = res[i].amount;
+            }
+        });
+    });
 }
 
 function updateProgressBars() {
