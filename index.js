@@ -1,23 +1,21 @@
-const e = require("express");
 const express = require("express");
 const session = require('express-session');
 const mysql = require('mysql');
-const { callbackify } = require("util");
 
 var connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'admin',
-  database: 'my_db',
-  flags: "-FOUND_ROWS"
+    host: 'localhost',
+    user: 'root',
+    password: 'admin',
+    database: 'firstapi',
+    flags: "-FOUND_ROWS"
 })
 
 connection.connect(function(err) {
     if (err) {
-      console.error('Error connecting to database: ' + err.stack);
-      return;
+        console.error('Error connecting to database: ' + err.stack);
+        return;
     }
-   
+
     console.log('Connected to database as id ' + connection.threadId);
 });
 
@@ -34,23 +32,19 @@ app.use(express.static("public"));
 app.listen(
     PORT,
     () => console.log("App live and listening on port " + PORT)
-    );
+);
 
 var sess;
 
 app.get("/", (req, res) => {
     sess = req.session;
-    /*if (!sess.email) {
-        res.redirect("/login");
-    }else {*/
-        res.sendFile("index.html", { root: "public" });
-    //}
+    res.sendFile("index.html", { root: "public" });
 });
 
 app.get("/sessions/:sessionID", (req, res) => {
     sess = req.session;
 
-    const { sessionID} = req.params;
+    const { sessionID } = req.params;
     const { exists } = req.query;
 
     var result = {};
@@ -64,12 +58,12 @@ app.get("/sessions/:sessionID", (req, res) => {
                         exists: true
                     }
                 };
-            }else if (err) {
+            } else if (err) {
                 result = {
                     status: "error",
                     error: err
                 };
-            }else {
+            } else {
                 result = {
                     status: "ok",
                     response: {
@@ -79,7 +73,7 @@ app.get("/sessions/:sessionID", (req, res) => {
             }
             res.send(result);
         });
-    }else {
+    } else {
         selectFromDB(function(success, resp) {
             if (success) {
                 result = {
@@ -88,7 +82,7 @@ app.get("/sessions/:sessionID", (req, res) => {
                         data: resp
                     }
                 };
-            }else {
+            } else {
                 result = {
                     status: "error",
                     error: resp
@@ -112,7 +106,7 @@ app.get("/runes", (req, res) => {
                     data: resp
                 }
             };
-        }else {
+        } else {
             result = {
                 status: "error",
                 error: resp
@@ -120,7 +114,7 @@ app.get("/runes", (req, res) => {
         }
 
         res.send(result);
-        
+
     }, "runes");
 });
 
@@ -137,7 +131,7 @@ app.get("/runs", (req, res) => {
                     data: resp
                 }
             };
-        }else {
+        } else {
             result = {
                 status: "error",
                 error: resp
@@ -145,7 +139,7 @@ app.get("/runs", (req, res) => {
         }
 
         res.send(result);
-        
+
     }, "runs");
 
 });
@@ -167,7 +161,7 @@ app.get("/runes/:rune", (req, res) => {
                     data: resp
                 }
             };
-        }else {
+        } else {
             result = {
                 status: "error",
                 error: resp
@@ -175,16 +169,16 @@ app.get("/runes/:rune", (req, res) => {
         }
 
         res.send(result);
-        
+
     }, "runes", "name", rune);
 
 });
 
 router.get("/", (req, res) => {
     sess = req.session;
-    if(sess.email) {
+    if (sess.email) {
         return res.redirect("/" + sess.token);
-    }else {
+    } else {
         res.redirect("/login");
     }
 });
@@ -205,15 +199,15 @@ app.post("/runes/:rune", (req, res) => {
     }
 
     updateDBRow("runes", "amount", amount, ["name", rune], function() {
-        
+
     });
 });
 
 router.get("/", (req, res) => {
     sess = req.session;
-    if(sess.email) {
+    if (sess.email) {
         return res.redirect("/" + sess.token);
-    }else {
+    } else {
         res.redirect("/login");
     }
 });
@@ -230,8 +224,8 @@ router.get("/:token", (req, res) => {
     sess = req.session;
     const { token } = req.params;
     if (token === sess.token) {
-        res.send({test: "test"});
-    }else res.status(400);
+        res.send({ test: "test" });
+    } else res.status(400);
 });
 
 app.use("/", router);
@@ -265,7 +259,7 @@ function selectFromDB(callback, table, row, query) {
             }
             callback(true, resp);
         });
-    }catch (err) {
+    } catch (err) {
         callback(false, err);
         return;
     }

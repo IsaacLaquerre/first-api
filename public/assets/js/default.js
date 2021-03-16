@@ -1,4 +1,4 @@
-const apiEndpoint = "http://localhost:8080/"
+const apiEndpoint = "http://localhost:8080/";
 
 function isLoggedIn() {
     var isLoggedIn = true;
@@ -15,28 +15,27 @@ function isLoggedIn() {
 function runeCheck(el) {
     if (!isLoggedIn()) return alert("You must log-in first");
     if (el.classList.contains("clicked")) {
-        el.classList.remove("clicked")
-            fetch(apiEndpoint + "runes/" + el.id).then((body) => {
-                body.json().then((res) => {
-                    res = res.response.data;
+        el.classList.remove("clicked");
+        fetch(apiEndpoint + "runes/" + el.id).then((body) => {
+            body.json().then((res) => {
+                res = res.response.data;
 
-                    var amount = parseInt(res[0].amount);
-                    amount--;
-                    el.children[1].innerHTML = amount;
+                var amount = parseInt(res[0].amount);
+                amount--;
+                el.children[1].innerHTML = amount;
 
-                    var body = {"amount": amount};
-                    
-                    fetch(apiEndpoint + "runes/" + el.id,
-                    {
-                        method: "POST",
-                        body: JSON.stringify(body),
-                        headers: {
-                            "Content-Type": "application/json"
-                        }
-                    });
+                var body = { "amount": amount };
+
+                fetch(apiEndpoint + "runes/" + el.id, {
+                    method: "POST",
+                    body: JSON.stringify(body),
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
                 });
             });
-    }else {
+        });
+    } else {
         el.classList.add("clicked")
         fetch(apiEndpoint + "runes/" + el.id).then((body) => {
             body.json().then((res) => {
@@ -46,10 +45,9 @@ function runeCheck(el) {
                 amount++;
                 el.children[1].innerHTML = amount;
 
-                var body = {"amount": amount};
+                var body = { "amount": amount };
 
-                fetch(apiEndpoint + "runes/" + el.id,
-                {
+                fetch(apiEndpoint + "runes/" + el.id, {
                     method: "POST",
                     body: JSON.stringify(body),
                     headers: {
@@ -108,35 +106,34 @@ function updateProgressBars() {
 //https://discord.com/api/oauth2/authorize?client_id=818916834714845185&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Flogin&response_type=code&scope=identify
 
 function discord(el) {
-    switch(el.classList.contains("logged-out")) {
+    switch (el.classList.contains("logged-out")) {
         case true:
-			const fragment = new URLSearchParams(window.location.hash.slice(1));
+            const fragment = new URLSearchParams(window.location.hash.slice(1));
 
-			if (fragment.has("access_token")) {
-				const accessToken = fragment.get("access_token");
-				const tokenType = fragment.get("token_type");
+            if (fragment.has("access_token")) {
+                const accessToken = fragment.get("access_token");
+                const tokenType = fragment.get("token_type");
 
-				fetch('https://discord.com/api/users/@me', {
-					headers: {
-						authorization: `${tokenType} ${accessToken}`
-					}
-				})
-					.then(res => res.json())
-					.then(response => {
-						const { username, discriminator } = response;
-						document.getElementById('info').innerText += ` ${username}#${discriminator}`;
-					})
-					.catch(console.error);
+                fetch('https://discord.com/api/users/@me', {
+                        headers: {
+                            authorization: `${tokenType} ${accessToken}`
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(response => {
+                        const { username, discriminator } = response;
+                        document.getElementById('info').innerText += ` ${username}#${discriminator}`;
+                    })
+                    .catch(console.error);
 
-			}
-			else {
-				document.getElementById('discord').style.display = 'block';
-			}
-        break;
+            } else {
+                document.getElementById('discord').style.display = 'block';
+            }
+            break;
         case false:
 
-        break;
+            break;
         default:
-        break;
+            break;
     }
 }
